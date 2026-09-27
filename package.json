@@ -1,0 +1,12 @@
+{
+  "name": "meds-tracker-pwa",
+  "version": "1.0.0",
+  "description": "iOS Medication Tracker PWA with Google Sheets Sync",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "python3 -m http.server 8000"
+  },
+  "keywords": ["pwa", "ios", "medication-tracker", "google-sheets"],
+  "author": "",
+  "license": "MIT"
+}

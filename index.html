@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Meds Tracker</title>
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Meds">
+  <meta name="theme-color" content="#090d16">
+  
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --card-border: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --accent-blue: #3b82f6;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(32px, env(safe-area-inset-bottom));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 6px 0;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand .today-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Sync Status Badge */
+    .sync-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .sync-pill:active {
+      transform: scale(0.96);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .status-dot.pending {
+      background: var(--accent-amber);
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-dot.error {
+      background: var(--accent-red);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .icon-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.92);
+      background: #334155;
+    }
+
+    /* Meds List */
+    .meds-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .med-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .med-accent-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 6px;
+    }
+
+    .med-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-left: 2px;
+    }
+
+    .med-info h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .med-info .dose-tag {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .timer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+
+    .timer-badge.ready {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .timer-badge.soon {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .timer-badge.due {
+      background: rgba(239, 68, 68, 0.18);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .med-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      padding-left: 2px;
+    }
+
+    /* Log Button */
+    .log-btn {
+      width: 100%;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+      transition: transform 0.12s, filter 0.15s;
+    }
+
+    .log-btn:active {
+      transform: scale(0.97);
+      filter: brightness(0.9);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .empty-state svg {
+      width: 56px;
+      height: 56px;
+      stroke: var(--text-muted);
+      opacity: 0.6;
+    }
+
+    .add-med-hero-btn {
+      margin-top: 10px;
+      padding: 12px 24px;
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid #334155;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Undo Toast */
+    .undo-toast {
+      position: fixed;
+      bottom: max(24px, env(safe-area-inset-bottom));
+      left: 16px;
+      right: 16px;
+      max-width: 440px;
+      margin: 0 auto;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      transform: translateY(120%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .undo-toast.active {
+      transform: translateY(0);
+    }
+
+    .undo-text {
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .undo-btn {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .undo-btn:active {
+      transform: scale(0.94);
+    }
+
+    .undo-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--primary);
+      width: 100%;
+      transform-origin: left;
+    }
+
+    /* Modals / Drawers */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 900;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-sheet {
+      background: #131b2e;
+      border-top: 1px solid #1e293b;
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 24px 20px max(32px, env(safe-area-inset-bottom)) 20px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .modal-overlay.open .modal-sheet {
+      transform: translateY(0);
+    }
+
+    .modal-sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .modal-sheet-header h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: #1e293b;
+      border: none;
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    /* Form Fields */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      background: #090d16;
+      border: 1px solid #27354f;
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 1rem;
+      outline: none;
+      user-select: text;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .color-picker-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .color-option {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .color-option.selected {
+      border-color: #fff;
+      transform: scale(1.15);
+    }
+
+    .primary-submit-btn {
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .primary-submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* History & Med Items */
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #090d16;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #1e293b;
+    }
+
+    .item-row-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .item-row-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .item-row-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .delete-item-btn {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Bottom quick action bar */
+    .bottom-bar {
+      margin-top: 24px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .outline-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: 1px dashed #334155;
+      color: var(--text-muted);
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .outline-btn:active {
+      background: #1e293b;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header>
+    <div class="brand">
+      <h1>Medications</h1>
+      <span class="today-date" id="currentDateDisplay">Today</span>
+    </div>
+    <div class="header-actions">
+      <div class="sync-pill" id="syncStatusPill" onclick="app.manualSync()">
+        <span class="status-dot" id="syncDot"></span>
+        <span id="syncStatusText">Synced</span>
+      </div>
+      <button class="icon-btn" onclick="app.openModal('historyModal')" title="History">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      </button>
+      <button class="icon-btn" onclick="app.openModal('settingsModal')" title="Settings">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Medication Buttons List -->
+  <main class="meds-container" id="medsList">
+    <!-- Dynamic medication cards injected here -->
+  </main>
+
+  <div class="bottom-bar">
+    <button class="outline-btn" onclick="app.openModal('addMedModal')">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Add Medication
+    </button>
+    <button class="outline-btn" onclick="app.openModal('manageMedsModal')">
+      Manage Buttons
+    </button>
+  </div>
+
+  <!-- Undo Toast Banner -->
+  <div class="undo-toast" id="undoToast">
+    <span class="undo-text" id="undoToastText">Dose logged</span>
+    <button class="undo-btn" onclick="app.undoLastDose()">UNDO</button>
+    <div class="undo-progress" id="undoProgress"></div>
+  </div>
+
+  <!-- Add Medication Modal -->
+  <div class="modal-overlay" id="addMedModal">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3>New Medication</h3>
+        <button class="close-btn" onclick="app.closeModal('addMedModal')">✕</button>
+      </div>
+      <form id="addMedForm" onsubmit="app.saveMedication(event)">
+        <div class="form-group">
+          <label>Medication Name</label>
+          <input type="text" id="medNameInput" class="form-input" placeholder="e.g. Amoxicillin, Tylenol" required autocomplete="off">
+        </div>
+        <div class="form-group" style="margin-top: 14px;">
+          <label>Dose / Instructions</label>
+          <input type="text" id="medDoseInput" class="form-input" placeholder="e.g. 500mg with food" autocomplete="off">
+        </div>
+        <div class="form-group" style="margin-top: 14px;">
+          <label>Interval (Hours between doses)</label>
+          <input type="number" step="0.5" min="0" id="medIntervalInput" class="form-input" placeholder="e.g. 4, 6, 8, 12, 24" required>
+        </div>
+        <div class="form-group" style="margin-top: 14px;">
+          <label>Button Accent Color</label>
+          <div class="color-picker-row">
+            <div class="color-option selected" style="background: #10b981;" onclick="app.selectColor('#10b981', this)"></div>
+            <div class="color-option" style="background: #3b82f6;" onclick="app.selectColor('#3b82f6', this)"></div>
+            <div class="color-option" style="background: #a855f7;" onclick="app.selectColor('#a855f7', this)"></div>
+            <div class="color-option" style="background: #f59e0b;" onclick="app.selectColor('#f59e0b', this)"></div>
+            <div class="color-option" style="background: #ec4899;" onclick="app.selectColor('#ec4899', this)"></div>
+          </div>
+        </div>
+        <button type="submit" class="primary-submit-btn" style="width: 100%;">Create Button</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manage Meds Modal -->
+  <div class="modal-overlay" id="manageMedsModal">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3>Manage Medications</h3>
+        <button class="close-btn" onclick="app.closeModal('manageMedsModal')">✕</button>
+      </div>
+      <div class="item-list" id="manageMedsList">
+        <!-- Render existing meds for deletion -->
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3>Recent Doses</h3>
+        <button class="close-btn" onclick="app.closeModal('historyModal')">✕</button>
+      </div>
+      <div class="item-list" id="historyList">
+        <!-- Log history items -->
+      </div>
+      <button class="outline-btn" style="margin-top: 10px; border-color: #ef4444; color: #ef4444;" onclick="app.clearHistory()">
+        Clear Local History
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3>Settings & Sync</h3>
+        <button class="close-btn" onclick="app.closeModal('settingsModal')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Google Apps Script Web App URL</label>
+        <input type="url" id="scriptUrlInput" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
+        <small style="color: var(--text-muted); margin-top: 4px; font-size: 0.78rem;">
+          Paste your published Google Apps Script URL here. Tap "Save & Test Connection" to verify.
+        </small>
+      </div>
+      <button class="primary-submit-btn" onclick="app.saveSettings()">Save & Test Connection</button>
+      
+      <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #1e293b;">
+        <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
+          Data Backup
+        </label>
+        <div style="display: flex; gap: 10px; margin-top: 8px;">
+          <button class="outline-btn" onclick="app.exportData()">Export JSON</button>
+          <button class="outline-btn" onclick="app.importData()">Import JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="logic.js"></script>
+  <script>
+    // State Store
+    const state = {
+      meds: JSON.parse(localStorage.getItem('meds_v1') || '[]'),
+      history: JSON.parse(localStorage.getItem('history_v1') || '[]'),
+      syncQueue: JSON.parse(localStorage.getItem('syncQueue_v1') || '[]'),
+      scriptUrl: localStorage.getItem('scriptUrl_v1') || '',
+      selectedColor: '#10b981',
+      undoTimer: null,
+      undoCandidate: null
+    };
+
+    // Default starter medications if first time opening
+    if (state.meds.length === 0 && state.history.length === 0) {
+      state.meds = [
+        { id: 'med-1', name: 'Pain Relief (Ibuprofen)', dose: '400mg with water', intervalHours: 6, color: '#3b82f6', lastTaken: null },
+        { id: 'med-2', name: 'Antibiotic (Amoxicillin)', dose: '500mg with food', intervalHours: 8, color: '#10b981', lastTaken: null }
+      ];
+      localStorage.setItem('meds_v1', JSON.stringify(state.meds));
+    }
+
+    const app = {
+      init() {
+        this.renderDate();
+        this.renderMeds();
+        this.updateSyncStatus();
+        this.initServiceWorker();
+
+        // Refresh timers every 15 seconds
+        setInterval(() => this.renderMeds(), 15000);
+        
+        // Listen to online events to flush sync queue
+        window.addEventListener('online', () => this.flushSyncQueue());
+        if (navigator.onLine && state.syncQueue.length > 0) {
+          this.flushSyncQueue();
+        }
+      },
+
+      initServiceWorker() {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+      },
+
+      renderDate() {
+        const now = new Date();
+        const options = { weekday: 'long', month: 'short', day: 'numeric' };
+        document.getElementById('currentDateDisplay').textContent = now.toLocaleDateString(undefined, options);
+      },
+
+      renderMeds() {
+        const container = document.getElementById('medsList');
+        if (state.meds.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <h3>No medication buttons configured</h3>
+              <p>Add your first medication button to begin tracking.</p>
+              <button class="add-med-hero-btn" onclick="app.openModal('addMedModal')">+ Add Medication</button>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = state.meds.map(med => {
+          const timer = this.calculateTimer(med);
+          return `
+            <div class="med-card">
+              <div class="med-accent-bar" style="background: ${med.color || '#10b981'};"></div>
+              <div class="med-header">
+                <div class="med-info">
+                  <h2>${this.escapeHtml(med.name)}</h2>
+                  <div class="dose-tag">${this.escapeHtml(med.dose || `Every ${med.intervalHours}h`)}</div>
+                </div>
+                <div class="timer-badge ${timer.badgeClass}">
+                  ${timer.badgeText}
+                </div>
+              </div>
+              <div class="med-meta">
+                <span>${timer.lastTakenText}</span>
+                <span>Interval: ${med.intervalHours}h</span>
+              </div>
+              <button class="log-btn" style="background: linear-gradient(135deg, ${med.color || '#10b981'}, #0f172a);" onclick="app.stageDose('${med.id}')">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Log Dose Now
+              </button>
+            </div>
+          `;
+        }).join('');
+      },
+
+      calculateTimer(med) {
+        return MedsLogic.calculateTimer(med);
+      },
+
+      // Stage dose with 5-second undo grace period
+      stageDose(medId) {
+        if (navigator.vibrate) navigator.vibrate(40);
+        
+        const med = state.meds.find(m => m.id === medId);
+        if (!med) return;
+
+        // If there was an uncommitted undo candidate, commit it immediately
+        if (state.undoCandidate) {
+          this.commitDose(state.undoCandidate);
+        }
+
+        const now = new Date();
+        const candidate = {
+          id: 'log-' + Date.now(),
+          medId: med.id,
+          medName: med.name,
+          dose: med.dose || '',
+          intervalHours: med.intervalHours,
+          timestamp: now.toISOString(),
+          localTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        // Temporarily update UI to show immediate feedback
+        med._prevLastTaken = med.lastTaken;
+        med.lastTaken = candidate.timestamp;
+        this.renderMeds();
+
+        state.undoCandidate = candidate;
+
+        // Show undo toast
+        const toast = document.getElementById('undoToast');
+        const toastText = document.getElementById('undoToastText');
+        const progress = document.getElementById('undoProgress');
+
+        toastText.textContent = `Logged ${med.name} (${candidate.localTime})`;
+        toast.classList.add('active');
+
+        // Animate countdown bar
+        progress.style.transition = 'none';
+        progress.style.transform = 'scaleX(1)';
+        setTimeout(() => {
+          progress.style.transition = 'transform 5s linear';
+          progress.style.transform = 'scaleX(0)';
+        }, 20);
+
+        clearTimeout(state.undoTimer);
+        state.undoTimer = setTimeout(() => {
+          this.commitDose(candidate);
+          toast.classList.remove('active');
+          state.undoCandidate = null;
+        }, 5000);
+      },
+
+      undoLastDose() {
+        if (!state.undoCandidate) return;
+        clearTimeout(state.undoTimer);
+
+        const med = state.meds.find(m => m.id === state.undoCandidate.medId);
+        if (med) {
+          med.lastTaken = med._prevLastTaken || null;
+          delete med._prevLastTaken;
+        }
+
+        state.undoCandidate = null;
+        document.getElementById('undoToast').classList.remove('active');
+        this.renderMeds();
+        if (navigator.vibrate) navigator.vibrate([20, 50, 20]);
+      },
+
+      commitDose(doseRecord) {
+        state.history.unshift(doseRecord);
+        // Keep last 100 history items
+        if (state.history.length > 100) state.history.pop();
+        localStorage.setItem('history_v1', JSON.stringify(state.history));
+
+        // Update meds permanent state
+        localStorage.setItem('meds_v1', JSON.stringify(state.meds));
+
+        // Enqueue for Google Sheets sync
+        state.syncQueue.push(doseRecord);
+        localStorage.setItem('syncQueue_v1', JSON.stringify(state.syncQueue));
+
+        this.updateSyncStatus();
+        this.flushSyncQueue();
+      },
+
+      async flushSyncQueue() {
+        if (state.syncQueue.length === 0) {
+          this.updateSyncStatus();
+          return;
+        }
+
+        if (!state.scriptUrl) {
+          this.updateSyncStatus('Config Script URL');
+          return;
+        }
+
+        if (!navigator.onLine) {
+          this.updateSyncStatus(`Offline (${state.syncQueue.length} queued)`);
+          return;
+        }
+
+        this.updateSyncStatus('Syncing...');
+
+        const itemsToSync = [...state.syncQueue];
+        try {
+          // Send payload as plain text to prevent CORS preflight blocking in Google Apps Script
+          const payload = JSON.stringify({
+            action: 'log_batch',
+            items: itemsToSync
+          });
+
+          await fetch(state.scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: payload
+          });
+
+          // In no-cors mode, if fetch doesn't throw network error, request was dispatched successfully
+          state.syncQueue = state.syncQueue.filter(item => !itemsToSync.some(synced => synced.id === item.id));
+          localStorage.setItem('syncQueue_v1', JSON.stringify(state.syncQueue));
+          this.updateSyncStatus('Synced');
+        } catch (err) {
+          console.error('Sync failed:', err);
+          this.updateSyncStatus(`Sync retry queued (${state.syncQueue.length})`);
+        }
+      },
+
+      manualSync() {
+        if (!state.scriptUrl) {
+          this.openModal('settingsModal');
+        } else {
+          this.flushSyncQueue();
+        }
+      },
+
+      updateSyncStatus(overrideText) {
+        const pillText = document.getElementById('syncStatusText');
+        const dot = document.getElementById('syncDot');
+
+        dot.className = 'status-dot';
+
+        if (overrideText) {
+          pillText.textContent = overrideText;
+          if (overrideText.includes('Offline') || overrideText.includes('queued')) dot.classList.add('pending');
+          if (overrideText.includes('Config')) dot.classList.add('error');
+          return;
+        }
+
+        if (!state.scriptUrl) {
+          pillText.textContent = 'Set Sheet URL';
+          dot.classList.add('error');
+        } else if (state.syncQueue.length > 0) {
+          pillText.textContent = `${state.syncQueue.length} Pending`;
+          dot.classList.add('pending');
+        } else {
+          pillText.textContent = 'Synced';
+        }
+      },
+
+      // Modal Controls
+      openModal(id) {
+        if (id === 'manageMedsModal') this.renderManageMeds();
+        if (id === 'historyModal') this.renderHistory();
+        if (id === 'settingsModal') {
+          document.getElementById('scriptUrlInput').value = state.scriptUrl || '';
+        }
+        document.getElementById(id).classList.add('open');
+      },
+
+      closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+      },
+
+      selectColor(color, element) {
+        state.selectedColor = color;
+        document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+        element.classList.add('selected');
+      },
+
+      saveMedication(event) {
+        event.preventDefault();
+        const name = document.getElementById('medNameInput').value.trim();
+        const dose = document.getElementById('medDoseInput').value.trim();
+        const interval = parseFloat(document.getElementById('medIntervalInput').value) || 4;
+
+        if (!name) return;
+
+        const newMed = {
+          id: 'med-' + Date.now(),
+          name,
+          dose,
+          intervalHours: interval,
+          color: state.selectedColor || '#10b981',
+          lastTaken: null
+        };
+
+        state.meds.push(newMed);
+        localStorage.setItem('meds_v1', JSON.stringify(state.meds));
+
+        document.getElementById('addMedForm').reset();
+        this.closeModal('addMedModal');
+        this.renderMeds();
+      },
+
+      renderManageMeds() {
+        const list = document.getElementById('manageMedsList');
+        if (state.meds.length === 0) {
+          list.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No medications configured.</p>`;
+          return;
+        }
+        list.innerHTML = state.meds.map(med => `
+          <div class="item-row">
+            <div class="item-row-info">
+              <span class="item-row-title" style="color: ${med.color || '#fff'};">${this.escapeHtml(med.name)}</span>
+              <span class="item-row-sub">${this.escapeHtml(med.dose || '')} • Every ${med.intervalHours}h</span>
+            </div>
+            <button class="delete-item-btn" onclick="app.deleteMed('${med.id}')">Delete</button>
+          </div>
+        `).join('');
+      },
+
+      deleteMed(id) {
+        if (!confirm('Are you sure you want to delete this medication button?')) return;
+        state.meds = state.meds.filter(m => m.id !== id);
+        localStorage.setItem('meds_v1', JSON.stringify(state.meds));
+        this.renderManageMeds();
+        this.renderMeds();
+      },
+
+      renderHistory() {
+        const list = document.getElementById('historyList');
+        if (state.history.length === 0) {
+          list.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem; padding: 10px 0;">No dose history recorded yet.</p>`;
+          return;
+        }
+        list.innerHTML = state.history.map(item => {
+          const date = new Date(item.timestamp);
+          return `
+            <div class="item-row">
+              <div class="item-row-info">
+                <span class="item-row-title">${this.escapeHtml(item.medName)}</span>
+                <span class="item-row-sub">${date.toLocaleDateString()} at ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} ${item.dose ? '• ' + this.escapeHtml(item.dose) : ''}</span>
+              </div>
+              <button class="delete-item-btn" onclick="app.deleteHistoryItem('${item.id}')">✕</button>
+            </div>
+          `;
+        }).join('');
+      },
+
+      deleteHistoryItem(id) {
+        state.history = state.history.filter(h => h.id !== id);
+        localStorage.setItem('history_v1', JSON.stringify(state.history));
+        this.renderHistory();
+      },
+
+      clearHistory() {
+        if (!confirm('Clear all local history on this phone? (Logged rows in your Google Sheet will NOT be deleted).')) return;
+        state.history = [];
+        localStorage.setItem('history_v1', '[]');
+        this.renderHistory();
+      },
+
+      async saveSettings() {
+        const inputUrl = document.getElementById('scriptUrlInput').value.trim();
+        state.scriptUrl = inputUrl;
+        localStorage.setItem('scriptUrl_v1', inputUrl);
+        this.updateSyncStatus();
+
+        if (inputUrl) {
+          alert('Saved! Sending a test ping to your Google Sheet...');
+          try {
+            await fetch(inputUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: 'ping', timestamp: new Date().toISOString() })
+            });
+            alert('Ping sent! Check your Google Sheet to verify the connection row.');
+            this.closeModal('settingsModal');
+            this.flushSyncQueue();
+          } catch (e) {
+            alert('Could not reach Google Apps Script URL. Please ensure it is deployed with access set to "Anyone".');
+          }
+        } else {
+          this.closeModal('settingsModal');
+        }
+      },
+
+      exportData() {
+        const data = {
+          meds: state.meds,
+          history: state.history
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `meds-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+      },
+
+      importData() {
+        const jsonStr = prompt('Paste your backup JSON here:');
+        if (!jsonStr) return;
+        const res = MedsLogic.validateBackupData(jsonStr);
+        if (res.valid) {
+          state.meds = res.data.meds;
+          state.history = res.data.history;
+          localStorage.setItem('meds_v1', JSON.stringify(state.meds));
+          localStorage.setItem('history_v1', JSON.stringify(state.history));
+          this.renderMeds();
+          alert('Backup restored successfully!');
+          this.closeModal('settingsModal');
+        } else {
+          alert('Invalid backup data: ' + res.error);
+        }
+      },
+
+      escapeHtml(str) {
+        return MedsLogic.escapeHtml(str);
+      }
+    };
+
+    // Bootstrap
+    window.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
