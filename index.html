@@ -7,28 +7,32 @@
   
   <!-- iOS PWA Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Oxy Coat On">
-  <meta name="theme-color" content="#090d16">
+  <meta name="theme-color" content="#0284c7">
   
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
   
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: #131b2e;
-      --card-border: #1e293b;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+      /* Frutiger Aero Bright Humanist Palette */
+      --sky-top: #0284c7;
+      --sky-mid: #38bdf8;
+      --water-base: #a7f3d0;
+      --glass-panel: rgba(255, 255, 255, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.9);
+      --text-main: #0c2340;
+      --text-muted: #33597d;
       --primary: #10b981;
       --primary-hover: #059669;
-      --accent-blue: #3b82f6;
-      --accent-amber: #f59e0b;
+      --accent-blue: #0284c7;
+      --accent-amber: #eab308;
       --accent-red: #ef4444;
-      --radius-lg: 20px;
-      --radius-md: 14px;
-      --radius-sm: 8px;
+      --radius-pill: 9999px;
+      --radius-lg: 26px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
     }
 
     * {
@@ -40,9 +44,15 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: "Segoe UI", "Frutiger", -apple-system, BlinkMacSystemFont, "Lucida Grande", "Nunito", sans-serif;
+      /* Vibrant Aero Sun & Sky Gradient */
+      background: 
+        radial-gradient(ellipse 90% 50% at 50% -10%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 65%),
+        radial-gradient(circle at 10% 25%, rgba(125, 211, 252, 0.6) 0%, rgba(125, 211, 252, 0) 50%),
+        radial-gradient(circle at 90% 40%, rgba(167, 243, 208, 0.5) 0%, rgba(167, 243, 208, 0) 50%),
+        linear-gradient(175deg, #0284c7 0%, #38bdf8 30%, #7dd3fc 60%, #a7f3d0 100%);
+      background-attachment: fixed;
+      color: var(--text-main);
       min-height: 100vh;
       padding-top: max(16px, env(safe-area-inset-top));
       padding-bottom: max(32px, env(safe-area-inset-bottom));
@@ -51,6 +61,47 @@
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Floating Aero Bubbles */
+    .aero-bubbles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 32%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 20%, rgba(125, 211, 252, 0.25) 60%, rgba(255, 255, 255, 0.6) 100%);
+      box-shadow: 
+        inset -2px -3px 8px rgba(2, 132, 199, 0.3),
+        inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+        0 8px 24px rgba(2, 132, 199, 0.18);
+      animation: floatUp 16s infinite ease-in-out;
+    }
+
+    .b1 { width: 110px; height: 110px; left: 8%; bottom: -120px; animation-duration: 20s; animation-delay: 0s; }
+    .b2 { width: 65px; height: 65px; right: 12%; bottom: -80px; animation-duration: 15s; animation-delay: 3s; }
+    .b3 { width: 85px; height: 85px; left: 45%; bottom: -100px; animation-duration: 22s; animation-delay: 7s; }
+    .b4 { width: 45px; height: 45px; left: 80%; bottom: -60px; animation-duration: 17s; animation-delay: 5s; }
+    .b5 { width: 140px; height: 140px; right: -30px; bottom: 30%; animation-duration: 26s; animation-delay: 2s; opacity: 0.6; }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(1) translateX(0); opacity: 0; }
+      10% { opacity: 0.75; }
+      50% { transform: translateY(-50vh) scale(1.05) translateX(25px); opacity: 0.85; }
+      90% { opacity: 0.6; }
+      100% { transform: translateY(-115vh) scale(0.95) translateX(-20px); opacity: 0; }
+    }
+
+    /* All content sits in front of bubbles */
+    header, main, .bottom-bar, .undo-toast, .modal-overlay {
+      position: relative;
+      z-index: 1;
     }
 
     /* Header */
@@ -59,7 +110,15 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
-      padding: 6px 0;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: var(--radius-pill);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        0 6px 20px rgba(2, 80, 160, 0.15);
     }
 
     .brand {
@@ -68,57 +127,79 @@
     }
 
     .brand h1 {
-      font-size: 1.65rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: #0c2340;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .brand .today-date {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
-      font-weight: 500;
+      font-weight: 600;
       text-transform: capitalize;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    /* Sync Status Badge */
+    /* Glossy Aero Sync Pill */
     .sync-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
+      padding: 6px 14px;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.5) 49%,
+        rgba(224, 242, 254, 0.55) 50%,
+        rgba(186, 230, 253, 0.85) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: var(--radius-pill);
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #0369a1;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      box-shadow: 
+        inset 0 1px 1px #ffffff,
+        inset 0 -1px 2px rgba(2, 132, 199, 0.2),
+        0 3px 10px rgba(2, 132, 199, 0.2);
+      transition: transform 0.12s, box-shadow 0.12s;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
     }
 
     .sync-pill:active {
       transform: scale(0.96);
+      box-shadow: inset 0 2px 4px rgba(2, 132, 199, 0.3);
     }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
-      background: var(--primary);
+      background: radial-gradient(circle at 35% 35%, #86efac, #10b981 60%, #064e3b 100%);
+      box-shadow: 0 0 6px #10b981, inset 0 1px 1px #fff;
     }
 
     .status-dot.pending {
-      background: var(--accent-amber);
-      animation: pulse 1.5s infinite;
+      background: radial-gradient(circle at 35% 35%, #fef08a, #f59e0b 60%, #78350f 100%);
+      box-shadow: 0 0 6px #f59e0b, inset 0 1px 1px #fff;
+      animation: pulse 1.4s infinite;
     }
 
     .status-dot.error {
-      background: var(--accent-red);
+      background: radial-gradient(circle at 35% 35%, #fecdd3, #ef4444 60%, #7f1d1d 100%);
+      box-shadow: 0 0 6px #ef4444, inset 0 1px 1px #fff;
     }
 
     @keyframes pulse {
@@ -126,10 +207,17 @@
       50% { opacity: 0.4; transform: scale(0.85); }
     }
 
+    /* Glossy Acrylic Action Buttons */
     .icon-btn {
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: var(--text);
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.45) 49%,
+        rgba(224, 242, 254, 0.5) 50%,
+        rgba(207, 250, 254, 0.8) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      color: #0369a1;
       width: 38px;
       height: 38px;
       border-radius: 50%;
@@ -137,31 +225,46 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.1s, background 0.2s;
+      box-shadow: 
+        inset 0 1px 1px #ffffff,
+        inset 0 -1px 2px rgba(2, 132, 199, 0.2),
+        0 4px 10px rgba(2, 80, 160, 0.18);
+      transition: transform 0.12s, box-shadow 0.12s;
     }
 
     .icon-btn:active {
-      transform: scale(0.92);
-      background: #334155;
+      transform: scale(0.93);
+      box-shadow: inset 0 2px 5px rgba(2, 132, 199, 0.35);
     }
 
     /* Meds List */
     .meds-container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
       flex: 1;
     }
 
+    /* Aero Frosted Glass Card */
     .med-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      background: linear-gradient(
+        140deg,
+        rgba(255, 255, 255, 0.82) 0%,
+        rgba(255, 255, 255, 0.52) 50%,
+        rgba(240, 253, 250, 0.68) 100%
+      );
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
       border-radius: var(--radius-lg);
-      padding: 18px 20px;
+      padding: 20px 22px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      gap: 15px;
+      box-shadow: 
+        inset 0 1px 2px rgba(255, 255, 255, 0.98),
+        inset 0 -1px 2px rgba(2, 132, 199, 0.08),
+        0 12px 36px rgba(2, 70, 150, 0.16);
       position: relative;
       overflow: hidden;
     }
@@ -171,89 +274,139 @@
       top: 0;
       left: 0;
       bottom: 0;
-      width: 6px;
+      width: 7px;
+      box-shadow: 1px 0 6px rgba(0, 0, 0, 0.1);
     }
 
     .med-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding-left: 2px;
+      padding-left: 4px;
     }
 
     .med-info h2 {
       font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: -0.3px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: #0c2340;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
     }
 
     .med-info .dose-tag {
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       color: var(--text-muted);
+      font-weight: 600;
       margin-top: 2px;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
     }
 
+    /* Liquid Glass Timer Badges */
     .timer-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.82rem;
+      font-weight: 800;
       letter-spacing: 0.2px;
       white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        inset 0 1px 1px #ffffff,
+        0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .timer-badge::before {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      right: 2px;
+      height: 45%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.15) 100%);
+      border-radius: var(--radius-pill);
+      pointer-events: none;
     }
 
     .timer-badge.ready {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: linear-gradient(to bottom, #dcfce7 0%, #bbf7d0 48%, #86efac 52%, #4ade80 100%);
+      color: #065f46;
+      border: 1px solid #86efac;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     .timer-badge.soon {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: linear-gradient(to bottom, #fefce8 0%, #fef08a 48%, #fde047 52%, #eab308 100%);
+      color: #854d0e;
+      border: 1px solid #fde047;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     .timer-badge.due {
-      background: rgba(239, 68, 68, 0.18);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.35);
+      background: linear-gradient(to bottom, #fff1f2 0%, #fecdd3 48%, #fda4af 52%, #f43f5e 100%);
+      color: #9f1239;
+      border: 1px solid #fda4af;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     .med-meta {
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       color: var(--text-muted);
+      font-weight: 600;
       display: flex;
       justify-content: space-between;
-      padding-left: 2px;
+      padding-left: 4px;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
     }
 
-    /* Log Button */
+    /* AUTHENTIC FRUTIGER AERO GEL / AQUA LOG BUTTON */
     .log-btn {
+      position: relative;
+      overflow: hidden;
       width: 100%;
       padding: 16px 20px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-      color: #ffffff;
-      border: none;
-      border-radius: var(--radius-md);
-      font-size: 1.1rem;
-      font-weight: 700;
+      border-radius: var(--radius-pill);
+      border: 1.5px solid rgba(255, 255, 255, 0.88);
+      font-family: inherit;
+      font-size: 1.14rem;
+      font-weight: 800;
       letter-spacing: 0.3px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-      transition: transform 0.12s, filter 0.15s;
+      color: #ffffff;
+      text-shadow: 0 -1px 2px rgba(0, 0, 0, 0.45);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.28),
+        0 6px 20px rgba(2, 90, 170, 0.35);
+      transition: transform 0.12s, box-shadow 0.12s, filter 0.15s;
+    }
+
+    /* Glossy top specular reflection overlay */
+    .log-btn::before {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 3px;
+      right: 3px;
+      height: 48%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.2) 100%);
+      border-radius: var(--radius-pill) var(--radius-pill) 60% 60%;
+      pointer-events: none;
     }
 
     .log-btn:active {
-      transform: scale(0.97);
-      filter: brightness(0.9);
+      transform: scale(0.97) translateY(1px);
+      box-shadow: 
+        inset 0 3px 8px rgba(0, 0, 0, 0.45),
+        0 2px 6px rgba(2, 90, 170, 0.2);
+      filter: brightness(0.95);
     }
 
     /* Empty State */
@@ -268,25 +421,26 @@
     }
 
     .empty-state svg {
-      width: 56px;
-      height: 56px;
-      stroke: var(--text-muted);
-      opacity: 0.6;
+      width: 60px;
+      height: 60px;
+      stroke: #0284c7;
+      opacity: 0.75;
     }
 
     .add-med-hero-btn {
       margin-top: 10px;
-      padding: 12px 24px;
-      background: #1e293b;
-      color: var(--text);
-      border: 1px solid #334155;
-      border-radius: var(--radius-md);
-      font-size: 0.95rem;
-      font-weight: 600;
+      padding: 12px 26px;
+      background: linear-gradient(to bottom, #ffffff 0%, #e0f2fe 100%);
+      color: #0369a1;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: var(--radius-pill);
+      font-size: 0.98rem;
+      font-weight: 700;
       cursor: pointer;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
     }
 
-    /* Undo Toast */
+    /* Floating Liquid Undo Toast */
     .undo-toast {
       position: fixed;
       bottom: max(24px, env(safe-area-inset-bottom));
@@ -294,19 +448,28 @@
       right: 16px;
       max-width: 440px;
       margin: 0 auto;
-      background: #1e293b;
-      border: 1px solid #475569;
-      border-radius: var(--radius-md);
-      padding: 14px 18px;
+      background: linear-gradient(
+        140deg,
+        rgba(255, 255, 255, 0.92) 0%,
+        rgba(224, 242, 254, 0.88) 100%
+      );
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid rgba(255, 255, 255, 0.95);
+      border-radius: var(--radius-pill);
+      padding: 12px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      box-shadow: 
+        inset 0 1px 2px #fff,
+        0 14px 36px rgba(2, 60, 140, 0.35);
       z-index: 1000;
-      transform: translateY(120%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(140%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       overflow: hidden;
+      color: #0c2340;
     }
 
     .undo-toast.active {
@@ -314,19 +477,41 @@
     }
 
     .undo-text {
-      font-size: 0.92rem;
-      font-weight: 500;
+      font-size: 0.94rem;
+      font-weight: 700;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
+    /* Glossy Red Undo Gel Button */
     .undo-btn {
-      background: #ef4444;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #f87171 0%, #ef4444 50%, #dc2626 51%, #b91c1c 100%);
       color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
       cursor: pointer;
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.8),
+        inset 0 -1px 3px rgba(0, 0, 0, 0.3),
+        0 3px 10px rgba(239, 68, 68, 0.4);
+      text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
+    }
+
+    .undo-btn::before {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      right: 2px;
+      height: 48%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.15) 100%);
+      border-radius: var(--radius-pill);
+      pointer-events: none;
     }
 
     .undo-btn:active {
@@ -338,17 +523,18 @@
       bottom: 0;
       left: 0;
       height: 3px;
-      background: var(--primary);
+      background: linear-gradient(to right, #0284c7, #10b981);
       width: 100%;
       transform-origin: left;
     }
 
-    /* Modals / Drawers */
+    /* Modals / Drawers - Aero Frosted Glass */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(6px);
+      background: rgba(2, 44, 94, 0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       z-index: 900;
       display: flex;
       align-items: flex-end;
@@ -363,9 +549,15 @@
     }
 
     .modal-sheet {
-      background: #131b2e;
-      border-top: 1px solid #1e293b;
-      border-radius: 24px 24px 0 0;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.96) 0%,
+        rgba(240, 249, 255, 0.94) 100%
+      );
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.95);
+      border-radius: 28px 28px 0 0;
       width: 100%;
       max-height: 88vh;
       overflow-y: auto;
@@ -375,6 +567,10 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      box-shadow: 
+        inset 0 1px 2px #fff,
+        0 -10px 40px rgba(2, 60, 140, 0.25);
+      color: #0c2340;
     }
 
     .modal-overlay.open .modal-sheet {
@@ -385,19 +581,21 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #1e293b;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(2, 132, 199, 0.15);
     }
 
     .modal-sheet-header h3 {
-      font-size: 1.25rem;
-      font-weight: 700;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #0c2340;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
     }
 
     .close-btn {
-      background: #1e293b;
-      border: none;
-      color: var(--text-muted);
+      background: linear-gradient(to bottom, #ffffff, #e0f2fe);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      color: #0369a1;
       width: 32px;
       height: 32px;
       border-radius: 50%;
@@ -406,6 +604,7 @@
       justify-content: center;
       font-size: 1.1rem;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2);
     }
 
     /* Form Fields */
@@ -417,25 +616,28 @@
 
     .form-group label {
       font-size: 0.82rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .form-input {
-      background: #090d16;
-      border: 1px solid #27354f;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #bae6fd;
       border-radius: var(--radius-sm);
-      color: var(--text);
+      color: #0c2340;
       padding: 12px 14px;
       font-size: 1rem;
+      font-family: inherit;
       outline: none;
       user-select: text;
+      box-shadow: inset 0 1px 2px rgba(2, 132, 199, 0.1);
     }
 
     .form-input:focus {
-      border-color: var(--accent-blue);
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
     }
 
     .color-picker-row {
@@ -444,33 +646,56 @@
     }
 
     .color-option {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       cursor: pointer;
-      border: 2px solid transparent;
-      transition: transform 0.15s, border-color 0.15s;
+      border: 2.5px solid #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
 
     .color-option.selected {
-      border-color: #fff;
-      transform: scale(1.15);
+      transform: scale(1.18);
+      box-shadow: 0 0 0 3px #0284c7, 0 4px 10px rgba(0, 0, 0, 0.25);
     }
 
+    /* Primary Gel Submit Button */
     .primary-submit-btn {
-      background: var(--accent-blue);
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #38bdf8 0%, #0284c7 50%, #0369a1 51%, #075985 100%);
       color: #fff;
-      border: none;
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
       padding: 14px;
-      border-radius: var(--radius-md);
-      font-size: 1rem;
-      font-weight: 700;
+      border-radius: var(--radius-pill);
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
       cursor: pointer;
       margin-top: 10px;
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.3),
+        0 6px 18px rgba(2, 132, 199, 0.35);
+      text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.45);
+    }
+
+    .primary-submit-btn::before {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 3px;
+      right: 3px;
+      height: 48%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.15) 100%);
+      border-radius: var(--radius-pill);
+      pointer-events: none;
     }
 
     .primary-submit-btn:active {
       transform: scale(0.98);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
     /* History & Med Items */
@@ -484,10 +709,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #090d16;
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      border: 1px solid #1e293b;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
     }
 
     .item-row-info {
@@ -497,55 +723,74 @@
     }
 
     .item-row-title {
-      font-weight: 600;
-      font-size: 0.95rem;
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: #0c2340;
     }
 
     .item-row-sub {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
+      font-weight: 600;
     }
 
     .delete-item-btn {
-      background: transparent;
-      border: none;
-      color: #ef4444;
-      padding: 6px 10px;
+      background: linear-gradient(to bottom, #fee2e2, #fca5a5);
+      border: 1px solid #f87171;
+      color: #991b1b;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
     }
 
     /* Bottom quick action bar */
     .bottom-bar {
       margin-top: 24px;
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     .outline-btn {
       flex: 1;
-      padding: 12px;
-      background: transparent;
-      border: 1px dashed #334155;
-      color: var(--text-muted);
-      border-radius: var(--radius-md);
-      font-size: 0.9rem;
-      font-weight: 600;
+      padding: 13px;
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255, 255, 255, 0.9);
+      color: #0369a1;
+      border-radius: var(--radius-pill);
+      font-size: 0.92rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      box-shadow: 
+        inset 0 1px 1px #fff,
+        0 4px 14px rgba(2, 80, 160, 0.12);
+      transition: transform 0.12s, background 0.15s;
     }
 
     .outline-btn:active {
-      background: #1e293b;
-      color: var(--text);
+      transform: scale(0.97);
+      background: rgba(255, 255, 255, 0.8);
     }
   </style>
 </head>
 <body>
+
+  <!-- Ambient Frutiger Aero Bubbles -->
+  <div class="aero-bubbles" aria-hidden="true">
+    <div class="bubble b1"></div>
+    <div class="bubble b2"></div>
+    <div class="bubble b3"></div>
+    <div class="bubble b4"></div>
+    <div class="bubble b5"></div>
+  </div>
 
   <!-- App Header -->
   <header>
@@ -764,7 +1009,7 @@
                 <span>${timer.lastTakenText}</span>
                 <span>Interval: ${med.intervalHours}h</span>
               </div>
-              <button class="log-btn" style="background: linear-gradient(135deg, ${med.color || '#10b981'}, #0f172a);" onclick="app.stageDose('${med.id}')">
+              <button class="log-btn" style="background: linear-gradient(to bottom, ${med.color || '#0284c7'}, #0369a1);" onclick="app.stageDose('${med.id}')">
                 <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 Log Dose Now
               </button>
