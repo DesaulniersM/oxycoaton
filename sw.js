@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oxy-coat-on-v2';
+const CACHE_NAME = 'oxy-coat-on-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
