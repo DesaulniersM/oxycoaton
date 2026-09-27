@@ -1,6 +1,6 @@
 {
-  "name": "Medication Tracker",
-  "short_name": "Meds",
+  "name": "Oxy Coat On",
+  "short_name": "Oxy Coat On",
   "description": "Simple one-tap medication logger and timer",
   "start_url": "./index.html",
   "display": "standalone",

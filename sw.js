@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meds-tracker-v1';
+const CACHE_NAME = 'oxy-coat-on-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
